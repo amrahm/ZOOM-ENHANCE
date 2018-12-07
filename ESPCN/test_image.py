@@ -14,8 +14,8 @@ from model import Net
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test Super Resolution')
-    parser.add_argument('--upscale_factor', default=3, type=int, help='super resolution upscale factor')
-    parser.add_argument('--model_name', default='epoch_3_100.pt', type=str, help='super resolution model name')
+    parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
+    parser.add_argument('--model_name', default='epoch_8_100.pt', type=str, help='super resolution model name')
     opt = parser.parse_args()
 
     UPSCALE_FACTOR = opt.upscale_factor
@@ -26,6 +26,7 @@ if __name__ == "__main__":
     model = Net(upscale_factor=UPSCALE_FACTOR)
     if torch.cuda.is_available():
         model = model.cuda()
+    print('epochs/' + MODEL_NAME)
     model.load_state_dict(torch.load('epochs/' + MODEL_NAME))
 
     out_path = 'results/SRF_' + str(UPSCALE_FACTOR) + '/'
