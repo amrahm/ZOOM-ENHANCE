@@ -73,13 +73,15 @@ def generate_dataset(data_type, upscale_factor):
     path = root + '/SRF_' + str(upscale_factor)
     makePathIfNotExists(path)
     image_path = path + '/data'
-    makePathIfNotExists(image_path)
+    makePathIfNotExists(image_path + '/images/')
+    makePathIfNotExists(image_path + '/videos/')
     target_path = path + '/target'
-    makePathIfNotExists(target_path)
+    makePathIfNotExists(target_path + '/images/')
+    makePathIfNotExists(target_path + '/videos/')
 
     for image_name in tqdm(images_name, desc='generate ' + data_type + ' image dataset with upscale factor = '
             + str(upscale_factor) + ' from dataset'):
-        image = Image.open('data/dataset/' + data_type + '/' + image_name)
+        image = Image.open('data/dataset/images/' + data_type + '/' + image_name)
         target = image.copy()
         image = lr_transform(image)
         target = hr_transform(target)
@@ -89,7 +91,7 @@ def generate_dataset(data_type, upscale_factor):
 
     for video_name in tqdm(videos_name, desc='generate ' + data_type + ' video dataset with upscale factor = '
             + str(upscale_factor) + ' from dataset'):
-        video = pims.open('data/dataset/' + data_type + '/' + video_name)
+        video = pims.open('data/dataset/videos/' + data_type + '/' + video_name)
         try:
             for image in video[60:240]: #Save frames 60 to 240 only
                 image = Image.fromarray(image) #convert pims frame to PIL image
@@ -101,7 +103,7 @@ def generate_dataset(data_type, upscale_factor):
                 image.save(image_path + '/videos/' + image_name)
                 target.save(target_path + '/videos/' + image_name)
         except (pims.api.UnknownFormatError, IndexError) as e:
-            pass
+            print(e)
 
 def makePathIfNotExists(target_path):
     if not os.path.exists(target_path):
