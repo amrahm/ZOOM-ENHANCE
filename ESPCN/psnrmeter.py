@@ -23,6 +23,6 @@ class PSNRMeter(meter.Meter):
         self.sesum += torch.sum((output - target) ** 2)
 
     def value(self):
-        mse = self.sesum / max(1, self.n)
+        mse = self.sesum / max(1, self.n) + 0.0001
         psnr = 10 * log10(1 / mse)
         return psnr
