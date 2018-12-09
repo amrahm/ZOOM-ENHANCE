@@ -60,8 +60,10 @@ class DatasetFromFolder(Dataset):
 
 
 def generate_dataset(data_type, upscale_factor):
-    images_name = [x for x in listdir('data/dataset/images' + data_type) if is_image_file(x)]
-    videos_name = [x for x in listdir('data/dataset/videos' + data_type) if is_video_file(x)]
+    makePathIfNotExists('data/dataset/images/' + data_type)
+    makePathIfNotExists('data/dataset/videos/' + data_type)
+    images_name = [x for x in listdir('data/dataset/images/' + data_type) if is_image_file(x)]
+    videos_name = [x for x in listdir('data/dataset/videos/' + data_type) if is_video_file(x)]
     crop_size = calculate_valid_crop_size(256, upscale_factor)
     lr_transform = input_transform(crop_size, upscale_factor)
     hr_transform = target_transform(crop_size)
@@ -105,7 +107,7 @@ def makePathIfNotExists(target_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate Super Resolution Dataset')
-    parser.add_argument('--upscale_factor', default=3, type=int, help='super resolution upscale factor')
+    parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
     opt = parser.parse_args()
     UPSCALE_FACTOR = opt.upscale_factor
 
