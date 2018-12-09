@@ -93,15 +93,17 @@ def generate_dataset(data_type, upscale_factor):
             + str(upscale_factor) + ' from dataset'):
         video = pims.open('data/dataset/videos/' + data_type + '/' + video_name)
         try:
+            frame_no = 1
             for image in video[60:240]: #Save frames 60 to 240 only
                 image = Image.fromarray(image) #convert pims frame to PIL image
                 target = image.copy()
                 image = lr_transform(image)
                 target = hr_transform(target)
 
-                image_name = video_name.replace(video_name.split(".")[-1], ".png")
+                image_name = video_name.replace(video_name.split(".")[-1], "") + str(frame_no) + ".png"
                 image.save(image_path + '/videos/' + image_name)
                 target.save(target_path + '/videos/' + image_name)
+                frame_no += 1
         except (pims.api.UnknownFormatError, IndexError) as e:
             print(e)
 
