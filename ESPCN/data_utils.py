@@ -6,7 +6,7 @@ from os.path import join
 from PIL import Image
 import pims
 from torch.utils.data.dataset import Dataset
-from torchvision.transforms import Compose, CenterCrop, Scale
+from torchvision.transforms import Compose, CenterCrop, Resize
 from tqdm import tqdm
 
 
@@ -25,7 +25,7 @@ def calculate_valid_crop_size(crop_size, upscale_factor):
 def input_transform(crop_size, upscale_factor):
     return Compose([
         CenterCrop(crop_size),
-        Scale(crop_size // upscale_factor, interpolation=Image.BICUBIC)
+        Resize(crop_size // upscale_factor, interpolation=Image.BICUBIC)
     ])
 
 
@@ -90,15 +90,18 @@ def generate_dataset(data_type, upscale_factor):
     for video_name in tqdm(videos_name, desc='generate ' + data_type + ' video dataset with upscale factor = '
             + str(upscale_factor) + ' from dataset'):
         video = pims.open('data/dataset/' + data_type + '/' + video_name)
-        for image in video[60:240]: #Save frames 60 to 240 only
-            image = Image.fromarray(image) #convert pims frame to PIL image
-            target = image.copy()
-            image = lr_transform(image)
-            target = hr_transform(target)
+        try:
+            for image in video[60:240]: #Save frames 60 to 240 only
+                image = Image.fromarray(image) #convert pims frame to PIL image
+                target = image.copy()
+                image = lr_transform(image)
+                target = hr_transform(target)
 
-            image_name = video_name.replace(video_name.split(".")[-1], ".png")
-            image.save(image_path + '/videos/' + image_name)
-            target.save(target_path + '/videos/' + image_name)
+                image_name = video_name.replace(video_name.split(".")[-1], ".png")
+                image.save(image_path + '/videos/' + image_name)
+                target.save(target_path + '/videos/' + image_name)
+        except (pims.api.UnknownFormatError, IndexError) as e:
+            pass
 
 def makePathIfNotExists(target_path):
     if not os.path.exists(target_path):
