@@ -59,33 +59,33 @@ class DatasetFromFolder(Dataset):
 
 
 def generate_dataset(data_type, upscale_factor):
-    images_name = [x for x in listdir('data/VOC2012/' + data_type) if is_image_file(x)]
+    images_name = [x for x in listdir('data/dataset/' + data_type) if is_image_file(x)]
     crop_size = calculate_valid_crop_size(256, upscale_factor)
     lr_transform = input_transform(crop_size, upscale_factor)
     hr_transform = target_transform(crop_size)
 
     root = 'data/' + data_type
-    if not os.path.exists(root):
-        os.makedirs(root)
+    makePathIfNotExists(root)
     path = root + '/SRF_' + str(upscale_factor)
-    if not os.path.exists(path):
-        os.makedirs(path)
+    makePathIfNotExists(path)
     image_path = path + '/data'
-    if not os.path.exists(image_path):
-        os.makedirs(image_path)
+    makePathIfNotExists(image_path)
     target_path = path + '/target'
-    if not os.path.exists(target_path):
-        os.makedirs(target_path)
+    makePathIfNotExists(target_path)
 
     for image_name in tqdm(images_name, desc='generate ' + data_type + ' dataset with upscale factor = '
-            + str(upscale_factor) + ' from VOC2012'):
-        image = Image.open('data/VOC2012/' + data_type + '/' + image_name)
+            + str(upscale_factor) + ' from dataset'):
+        image = Image.open('data/dataset/' + data_type + '/' + image_name)
         target = image.copy()
         image = lr_transform(image)
         target = hr_transform(target)
 
         image.save(image_path + '/' + image_name)
         target.save(target_path + '/' + image_name)
+
+def makePathIfNotExists(target_path):
+    if not os.path.exists(target_path):
+        os.makedirs(target_path)
 
 
 if __name__ == "__main__":
