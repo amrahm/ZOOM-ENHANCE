@@ -4,6 +4,7 @@ from os import listdir
 from os.path import join
 
 from PIL import Image
+import pims
 from torch.utils.data.dataset import Dataset
 from torchvision.transforms import Compose, CenterCrop, Scale
 from tqdm import tqdm
@@ -59,7 +60,8 @@ class DatasetFromFolder(Dataset):
 
 
 def generate_dataset(data_type, upscale_factor):
-    images_name = [x for x in listdir('data/dataset/' + data_type) if is_image_file(x)]
+    images_name = [x for x in listdir('data/dataset/images' + data_type) if is_image_file(x)]
+    videos_name = [x for x in listdir('data/dataset/videos' + data_type) if is_video_file(x)]
     crop_size = calculate_valid_crop_size(256, upscale_factor)
     lr_transform = input_transform(crop_size, upscale_factor)
     hr_transform = target_transform(crop_size)
@@ -73,15 +75,28 @@ def generate_dataset(data_type, upscale_factor):
     target_path = path + '/target'
     makePathIfNotExists(target_path)
 
-    for image_name in tqdm(images_name, desc='generate ' + data_type + ' dataset with upscale factor = '
+    for image_name in tqdm(images_name, desc='generate ' + data_type + ' image dataset with upscale factor = '
             + str(upscale_factor) + ' from dataset'):
         image = Image.open('data/dataset/' + data_type + '/' + image_name)
         target = image.copy()
         image = lr_transform(image)
         target = hr_transform(target)
 
-        image.save(image_path + '/' + image_name)
-        target.save(target_path + '/' + image_name)
+        image.save(image_path + '/images/' + image_name)
+        target.save(target_path + '/images/' + image_name)
+
+    for video_name in tqdm(videos_name, desc='generate ' + data_type + ' video dataset with upscale factor = '
+            + str(upscale_factor) + ' from dataset'):
+        video = pims.open('data/dataset/' + data_type + '/' + video_name)
+        for image in video[60:240]: #Save frames 60 to 240 only
+            image = Image.fromarray(image) #convert pims frame to PIL image
+            target = image.copy()
+            image = lr_transform(image)
+            target = hr_transform(target)
+
+            image_name = video_name.replace(video_name.split(".")[-1], ".png")
+            image.save(image_path + '/videos/' + image_name)
+            target.save(target_path + '/videos/' + image_name)
 
 def makePathIfNotExists(target_path):
     if not os.path.exists(target_path):
