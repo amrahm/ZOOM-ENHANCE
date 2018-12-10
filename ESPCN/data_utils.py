@@ -119,8 +119,9 @@ def makePathIfNotExists(target_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate Super Resolution Dataset')
     parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
+    parser.add_argument('--set', default='train', type=int, help='super resolution upscale factor')
     opt = parser.parse_args()
     UPSCALE_FACTOR = opt.upscale_factor
+    SET = opt.set
 
-    generate_dataset(data_type='train', upscale_factor=UPSCALE_FACTOR)
-    generate_dataset(data_type='val', upscale_factor=UPSCALE_FACTOR)
+    generate_dataset(data_type=SET, upscale_factor=UPSCALE_FACTOR)
