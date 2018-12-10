@@ -24,14 +24,14 @@ def calculate_valid_crop_size(crop_size, upscale_factor):
 
 def input_transform(crop_size, upscale_factor):
     return Compose([
-        # CenterCrop(crop_size),
+        CenterCrop(crop_size),
         Resize(crop_size // upscale_factor, interpolation=Image.BICUBIC)
     ])
 
 
 def target_transform(crop_size):
     return Compose([
-        # CenterCrop(crop_size)
+        CenterCrop(crop_size)
     ])
 
 
@@ -65,7 +65,7 @@ def generate_dataset(data_type, upscale_factor):
     makePathIfNotExists('data/dataset/videos/' + data_type)
     images_name = [x for x in listdir('data/dataset/images/' + data_type) if is_image_file(x)]
     videos_name = [x for x in listdir('data/dataset/videos/' + data_type) if is_video_file(x)]
-    crop_size = calculate_valid_crop_size(256, upscale_factor)
+    crop_size = calculate_valid_crop_size(1080, upscale_factor)
     lr_transform = input_transform(crop_size, upscale_factor)
     hr_transform = target_transform(crop_size)
 
