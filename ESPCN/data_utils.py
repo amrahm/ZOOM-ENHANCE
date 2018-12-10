@@ -24,14 +24,14 @@ def calculate_valid_crop_size(crop_size, upscale_factor):
 
 def input_transform(crop_size, upscale_factor):
     return Compose([
-        CenterCrop(crop_size),
+        # CenterCrop(crop_size),
         Resize(crop_size // upscale_factor, interpolation=Image.BICUBIC)
     ])
 
 
 def target_transform(crop_size):
     return Compose([
-        CenterCrop(crop_size)
+        # CenterCrop(crop_size)
     ])
 
 
