@@ -8,6 +8,7 @@ import pims
 from torch.utils.data.dataset import Dataset
 from torchvision.transforms import Compose, CenterCrop, Resize
 from tqdm import tqdm
+import pymp
 
 
 def is_image_file(filename):
@@ -90,23 +91,25 @@ def generate_dataset(data_type, upscale_factor):
         image.save(image_path + '/images/' + image_name)
         target.save(target_path + '/images/' + image_name)
 
-    for video_name in tqdm(videos_name, desc='generate ' + data_type + ' video dataset with upscale factor = '
-            + str(upscale_factor) + ' from dataset'):
-        video = pims.open('data/dataset/videos/' + data_type + '/' + video_name)
-        try:
-            frame_no = 1
-            for image in video[60:240]: #Save frames 60 to 240 only
-                image = Image.fromarray(image) #convert pims frame to PIL image
-                target = image.copy()
-                image = lr_transform(image)
-                target = hr_transform(target)
+    with pymp.Parallel(24) as p:
+        for i in tqdm(p.range(len(videos_name)), desc='generate ' + data_type + ' video dataset with upscale factor = '
+                + str(upscale_factor) + ' from dataset'):
+            video_name = videos_name[i]
+            video = pims.open('data/dataset/videos/' + data_type + '/' + video_name)
+            try:
+                frame_no = 1
+                for image in video[60:240]: #Save frames 60 to 240 only
+                    image = Image.fromarray(image) #convert pims frame to PIL image
+                    target = image.copy()
+                    image = lr_transform(image)
+                    target = hr_transform(target)
 
-                image_name = video_name.replace(video_name.split(".")[-1], "") + str(frame_no) + ".png"
-                image.save(image_path + '/videos/' + image_name)
-                target.save(target_path + '/videos/' + image_name)
-                frame_no += 1
-        except (pims.api.UnknownFormatError, IndexError) as e:
-            print(e)
+                    image_name = video_name.replace(video_name.split(".")[-1], "") + str(frame_no) + ".png"
+                    image.save(image_path + '/videos/' + image_name)
+                    target.save(target_path + '/videos/' + image_name)
+                    frame_no += 1
+            except (pims.api.UnknownFormatError, IndexError) as e:
+                print(e)
 
 def makePathIfNotExists(target_path):
     if not os.path.exists(target_path):
