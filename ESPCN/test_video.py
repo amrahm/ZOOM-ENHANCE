@@ -27,7 +27,8 @@ if __name__ == "__main__":
     MODEL_NAME = opt.model_name
 
     path = 'data/test/SRF_' + str(UPSCALE_FACTOR) + '/video/'
-    videos_name = [x for x in listdir(path) if is_video_file(x)]
+    # videos_name = [x for x in listdir(path) if is_video_file(x)]
+    file_names = [x for x in listdir(path)]
     model = Net(upscale_factor=UPSCALE_FACTOR)
     if torch.cuda.is_available():
         model = model.cuda()
@@ -38,18 +39,20 @@ if __name__ == "__main__":
     out_path = 'results/SRF_' + str(UPSCALE_FACTOR) + '/'
     if not os.path.exists(out_path):
         os.makedirs(out_path)
-    for video_name in tqdm(videos_name, desc='convert LR videos to HR videos'):
-        videoCapture = cv2.VideoCapture(path + video_name)
-        if not IS_REAL_TIME:
-            fps = videoCapture.get(cv2.CAP_PROP_FPS)
-            size = (int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH) * UPSCALE_FACTOR),
-                    int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * UPSCALE_FACTOR)
-            output_name = out_path + video_name.split('.')[0] + '.avi'
-            videoWriter = cv2.VideoWriter(output_name, cv2.VideoWriter_fourcc(*'MPEG'), fps, size)
+    # for video_name in tqdm(videos_name, desc='convert LR videos to HR videos'):
+    for file_name in tqdm(file_names, desc='convert LR videos to HR videos'):
+        # videoCapture = cv2.VideoCapture(path + video_name)
+        # if not IS_REAL_TIME:
+        #     fps = videoCapture.get(cv2.CAP_PROP_FPS)
+        #     size = (int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH) * UPSCALE_FACTOR),
+        #             int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * UPSCALE_FACTOR)
+        #     output_name = out_path + video_name.split('.')[0] + '.avi'
+        #     videoWriter = cv2.VideoWriter(output_name, cv2.VideoWriter_fourcc(*'MPEG'), fps, size)
         # read frame
-        success, frame = videoCapture.read()
+        # success, frame = videoCapture.read()
         while success:
-            img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).convert('YCbCr')
+            img = Image.open(file_name).convert('YCbCr')
+            # img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).convert('YCbCr')
             y, cb, cr = img.split()
             image = Variable(ToTensor()(y)).view(1, -1, y.size[1], y.size[0])
             if torch.cuda.is_available():
