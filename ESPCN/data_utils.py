@@ -84,9 +84,9 @@ def generate_dataset(data_type, upscale_factor):
 
         # ffmpeg -i a.mp4 -force_key_frames 00:00:09,00:00:12 out.mp4
         # ffmpeg -ss 00:00:09 -i out.mp4 -t 00:00:03 -vcodec copy -acodec copy -y final.mp4
-        temp = "data/dataset/videos/temp/" + video_name
-        subprocess.call(["ffmpeg", "-i", video_rel_path, "-force_key_frames", "00:00:00,00:00:02", temp])
-        subprocess.call(["ffmpeg", "-ss", "00:00:00", "-i", temp, "-t", "00:00:02", "-vcodec", "copy", "-acodec", "copy", "-y", target_rel_path])
+        # temp = "data/dataset/videos/temp/" + video_name
+        subprocess.call(["ffmpeg", "-i", video_rel_path, "-force_key_frames", "00:00:00,00:00:02", video_rel_path])
+        subprocess.call(["ffmpeg", "-ss", "00:00:00", "-i", video_rel_path, "-t", "00:00:02", "-vcodec", "copy", "-acodec", "copy", "-y", target_rel_path])
         # ffmpeg_extract_subclip(video_rel_path, 0, 5, targetname=target_rel_path)
         video = pims.open(os.path.abspath(target_rel_path))
         #image_path
