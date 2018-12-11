@@ -50,6 +50,8 @@ if __name__ == "__main__":
     if not os.path.exists(out_path):
         os.makedirs(out_path)
     # for video_name in tqdm(videos_name, desc='convert LR videos to HR videos'):
+    test_img = Image.open(file_names[0]).convert('YCbCr')
+    videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, test_img.size)
     for file_name in tqdm(file_names, desc='convert LR videos to HR videos'):
         # videoCapture = cv2.VideoCapture(path + video_name)
         # if not IS_REAL_TIME:
@@ -58,7 +60,7 @@ if __name__ == "__main__":
             #         int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * UPSCALE_FACTOR)
             # output_name = out_path + video_name.split('.')[0] + '.avi'
             # videoWriter = cv2.VideoWriter(output_name, cv2.VideoWriter_fourcc(*'MPEG'), fps, size)
-        videoWriter = cv2.VideoWriter(out_path + "out.mpeg", cv2.VideoWriter_fourcc(*'MPEG'), 24, (720, 720))
+        videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, (720, 720))
         # read frame
         # success, frame = videoCapture.read()
         # while success:
