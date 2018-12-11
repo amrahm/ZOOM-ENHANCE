@@ -35,14 +35,14 @@ def processor(sample):
         next_target = next_target.cuda()
 
     a_curr = model(image)
-    a_next = model(a_next)
+    a_next = model(next_image)
     loss = criterion(a_curr, a_next, target, next_image)
 
     return loss, a_curr
 
 
 def on_sample(state):
-    print(state['sample'])
+    # print(state['sample'])
     state['sample']["training"] = state['train']
 
 
