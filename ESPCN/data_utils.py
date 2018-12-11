@@ -76,7 +76,7 @@ def generate_dataset(data_type, upscale_factor):
         #         + str(upscale_factor) + ' from dataset'):
     for i in tqdm(range(len(videos_name)), desc='generate ' + data_type + ' video dataset with upscale factor = '
             + str(upscale_factor) + ' from dataset'):
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         video_name = videos_name[i]
         video_rel_path = 'data/dataset/videos/' + data_type + '/' + video_name
         target_rel_path = target_path + '/videos/' + video_name
