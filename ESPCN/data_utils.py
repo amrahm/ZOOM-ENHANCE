@@ -55,7 +55,7 @@ class DatasetFromFolder(Dataset):
         
         frame_no = self.image_filenames[index].split(".")[-2]
         next_frame_no = self.image_filenames[index + 1].split(".")[-2]
-        if next_frame_no != frame_no + 1:
+        if int(next_frame_no) != int(frame_no) + 1:
             index = index + 1
 
         image, _, _ = Image.open(self.image_filenames[index]).convert('YCbCr').split()
