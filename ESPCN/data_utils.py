@@ -92,12 +92,7 @@ class DatasetFromFolderVideos(Dataset):
             target = self.target_transform(target)
             next_target = self.target_transform(next_target)
 
-        return {
-            'image': image,
-            'next_image': next_image,
-            'target': target,
-            'next_target': next_target
-        }
+        return image,next_image, target, next_target
 
     def __len__(self):
         return len(self.image_filenames)

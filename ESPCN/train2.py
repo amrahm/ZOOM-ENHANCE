@@ -20,10 +20,7 @@ from frameloss import FrameLoss
 
 
 def processor(sample):
-    image = sample["image"]
-    next_image = sample["next_image"]
-    target = sample["target"]
-    next_target = sample["next_target"]
+    image, next_image, target, next_target, training = sample
     image = Variable(image)
     next_image = Variable(next_image)
     target = Variable(target)
@@ -42,8 +39,7 @@ def processor(sample):
 
 
 def on_sample(state):
-    # print(state['sample'])
-    state['sample']["training"] = state['train']
+    state['sample'].append(state['train'])
 
 
 def reset_meters():
