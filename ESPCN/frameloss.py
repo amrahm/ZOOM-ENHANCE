@@ -15,5 +15,5 @@ class FrameLoss(torch.nn.Module):
         c_diff = a_curr - a_next
         t_diff = t_curr - t_next
         # loss = torch.nn.MSELoss(c_diff, t_diff)
-        loss = F.pairwise_distance(c_diff, t_diff)
+        loss = torch.mean(F.pairwise_distance(c_diff, t_diff))
         return loss
