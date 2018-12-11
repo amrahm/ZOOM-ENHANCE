@@ -54,11 +54,7 @@ if __name__ == "__main__":
             # output_name = out_path + video_name.split('.')[0] + '.avi'
             # videoWriter = cv2.VideoWriter(output_name, cv2.VideoWriter_fourcc(*'MPEG'), fps, size)
         videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, (720, 720))
-        # read frame
-        # success, frame = videoCapture.read()
-        # while success:
         img = Image.open(file_name).convert('YCbCr')
-        # img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)).convert('YCbCr')
         y, cb, cr = img.split()
         image = Variable(ToTensor()(y)).view(1, -1, y.size[1], y.size[0])
         if torch.cuda.is_available():
@@ -75,12 +71,5 @@ if __name__ == "__main__":
         out_img = Image.merge('YCbCr', [out_img_y, out_img_cb, out_img_cr]).convert('RGB')
         out_img = cv2.cvtColor(np.asarray(out_img), cv2.COLOR_RGB2BGR)
 
-        # if IS_REAL_TIME:
-        #     cv2.imshow('LR Video ', frame)
-        #     cv2.imshow('SR Video ', out_img)
-        #     cv2.waitKey(DELAY_TIME)
-        # else:
-            # save video
         videoWriter.write(out_img)
-            # next frame
-            # success, frame = videoCapture.read()
+    videoWriter.release()
