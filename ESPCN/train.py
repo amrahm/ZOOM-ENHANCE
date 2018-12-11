@@ -1,5 +1,6 @@
 import argparse
 
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -71,7 +72,7 @@ def on_end_epoch(state):
 
 
 if __name__ == "__main__":
-
+    os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
     parser = argparse.ArgumentParser(description='Train Super Resolution')
     parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
     parser.add_argument('--num_epochs', default=100, type=int, help='super resolution epochs number')
