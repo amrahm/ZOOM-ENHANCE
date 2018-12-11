@@ -36,7 +36,7 @@ def processor(sample):
 
     a_curr = model(image)
     a_next = model(next_image)
-    loss = criterion(a_curr, a_next, target, next_image)
+    loss = criterion(a_curr, a_next, target, next_target)
 
     return loss, a_curr
 
