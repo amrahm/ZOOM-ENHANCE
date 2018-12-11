@@ -42,7 +42,8 @@ def processor(sample):
 
 
 def on_sample(state):
-    state['sample'] = state['train']
+    print(state['sample'])
+    state['sample']["training"] = state['train']
 
 
 def reset_meters():
