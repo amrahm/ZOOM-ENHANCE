@@ -11,10 +11,6 @@ from tqdm import tqdm
 import pymp
 
 
-def is_image_file(filename):
-    return any(filename.endswith(extension) for extension in ['.png', '.jpg', '.jpeg', '.JPG', '.JPEG', '.PNG'])
-
-
 def is_video_file(filename):
     return any(filename.endswith(extension) for extension in ['.mp4', '.avi', '.mpg', '.mkv', '.wmv', '.flv'])
 
@@ -62,34 +58,17 @@ class DatasetFromFolder(Dataset):
 
 
 def generate_dataset(data_type, upscale_factor):
-    makePathIfNotExists('data/dataset/images/' + data_type)
     makePathIfNotExists('data/dataset/videos/' + data_type)
-    images_name = [x for x in listdir('data/dataset/images/' + data_type) if is_image_file(x)]
     videos_name = [x for x in listdir('data/dataset/videos/' + data_type) if is_video_file(x)]
-    crop_size = calculate_valid_crop_size(1080, upscale_factor)
-    lr_transform = input_transform(crop_size, upscale_factor)
-    hr_transform = target_transform(crop_size)
 
     root = 'data/' + data_type
     makePathIfNotExists(root)
     path = root + '/SRF_' + str(upscale_factor)
     makePathIfNotExists(path)
     image_path = path + '/data'
-    makePathIfNotExists(image_path + '/images/')
     makePathIfNotExists(image_path + '/videos/')
     target_path = path + '/target'
-    makePathIfNotExists(target_path + '/images/')
     makePathIfNotExists(target_path + '/videos/')
-
-    for image_name in tqdm(images_name, desc='generate ' + data_type + ' image dataset with upscale factor = '
-            + str(upscale_factor) + ' from dataset'):
-        image = Image.open('data/dataset/images/' + data_type + '/' + image_name)
-        target = image.copy()
-        image = lr_transform(image)
-        target = hr_transform(target)
-
-        image.save(image_path + '/images/' + image_name)
-        target.save(target_path + '/images/' + image_name)
 
     with pymp.Parallel(24) as p:
         for i in tqdm(p.range(len(videos_name)), desc='generate ' + data_type + ' video dataset with upscale factor = '
@@ -98,9 +77,14 @@ def generate_dataset(data_type, upscale_factor):
             video = pims.open('data/dataset/videos/' + data_type + '/' + video_name)
             try:
                 frame_no = 1
-                for image in video[60:240]: #Save frames 60 to 240 only
+                for image in video[60:90]: #Save frames 60 to 90 only
                     image = Image.fromarray(image) #convert pims frame to PIL image
                     target = image.copy()
+                    
+                    crop_size = calculate_valid_crop_size(720, upscale_factor)
+                    lr_transform = input_transform(crop_size, upscale_factor)
+                    hr_transform = target_transform(crop_size)
+
                     image = lr_transform(image)
                     target = hr_transform(target)
 
