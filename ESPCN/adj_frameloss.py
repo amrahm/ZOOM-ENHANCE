@@ -1,6 +1,6 @@
 import torch
 import torch.nn
-import torch.nn.functional as F
+from torch.nn import L1Loss
 
 
 class AdjacentFrameLoss(torch.nn.Module):
@@ -18,6 +18,4 @@ class AdjacentFrameLoss(torch.nn.Module):
         a_prev_diff = a_curr - a_prev
         t_next_diff = t_curr - t_next
         t_prev_diff = t_curr - t_prev
-        loss = torch.nn.L1Loss(a_next_diff, t_next_diff)
-        loss = torch.nn.L1Loss(a_prev_diff, t_prev_diff)
-        return loss
+        return L1Loss(a_next_diff, t_next_diff) + L1Loss(a_prev_diff, t_prev_diff)

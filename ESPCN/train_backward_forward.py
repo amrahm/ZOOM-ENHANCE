@@ -13,27 +13,29 @@ from torchnet.engine import Engine
 from torchnet.logger import VisdomPlotLogger
 from tqdm import tqdm
 
-from data_utils import DatasetFromFolderVideos
+from data_utils import DatasetFromFolderAdjacent
 from model import Net
 from psnrmeter import PSNRMeter
-from frameloss import FrameLoss
+from adj_frameloss import AdjacentFrameLoss
 
 
 def processor(sample):
-    image, next_image, target, next_target, training = sample
-    image = Variable(image)
-    next_image = Variable(next_image)
-    target = Variable(target)
-    next_target = Variable(next_target)
-    if torch.cuda.is_available():
-        image = image.cuda()
-        next_image = next_image.cuda()
-        target = target.cuda()
-        next_target = next_target.cuda()
+    def tensorFromSample(key):
+        tensor = Variable(sample[0][key])
+        if torch.cuda.is_available():
+            tensor = tensor.cuda()
+        return tensor
+    image = tensorFromSample("image")
+    next_image = tensorFromSample("next_image")
+    prev_image = tensorFromSample("prev_image")
+    target = tensorFromSample("target")
+    next_target = tensorFromSample("next_target")
+    prev_target = tensorFromSample("prev_target")
 
     a_curr = model(image)
+    a_prev = model(prev_image)
     a_next = model(next_image)
-    loss = criterion(a_curr, a_next, target, next_target)
+    loss = criterion(a_curr, a_prev, a_next, target, prev_target, next_target)
     loss += criterion2(a_curr, target)
 
     return loss, a_curr
@@ -49,7 +51,7 @@ def reset_meters():
 
 
 def on_forward(state):
-    meter_psnr.add(state['output'].data, state['sample'][3])
+    meter_psnr.add(state['output'].data, state['sample'][0]['target'])
     meter_loss.add(state['loss'].data.item())
 
 
@@ -75,11 +77,11 @@ def on_end_epoch(state):
     print('[Epoch %d] Val Loss: %.4f (PSNR: %.2f db)' % (
         state['epoch'], meter_loss.value()[0], meter_psnr.value()))
 
-    torch.save(model.state_dict(), 'epochs_frameloss/epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
+    torch.save(model.state_dict(), 'epochs_adj_frameloss/epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
 
 
 if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"]="2,3"
+    os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
 
     parser = argparse.ArgumentParser(description='Train Super Resolution')
@@ -90,15 +92,15 @@ if __name__ == "__main__":
     UPSCALE_FACTOR = opt.upscale_factor
     NUM_EPOCHS = opt.num_epochs
 
-    train_set = DatasetFromFolderVideos('data/train', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
+    train_set = DatasetFromFolderAdjacent('data/train', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
                                   target_transform=transforms.ToTensor())
-    val_set = DatasetFromFolderVideos('data/val', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
+    val_set = DatasetFromFolderAdjacent('data/val', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
                                 target_transform=transforms.ToTensor())
     train_loader = DataLoader(dataset=train_set, num_workers=12, batch_size=64, shuffle=True)
     val_loader = DataLoader(dataset=val_set, num_workers=12, batch_size=64, shuffle=False)
 
     model = Net(upscale_factor=UPSCALE_FACTOR)
-    criterion = FrameLoss()
+    criterion = AdjacentFrameLoss()
     criterion2 = nn.MSELoss()
     if torch.cuda.is_available():
         model = model.cuda()

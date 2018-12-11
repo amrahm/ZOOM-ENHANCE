@@ -23,13 +23,13 @@ if __name__ == "__main__":
     parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
     parser.add_argument('--is_real_time', default=False, type=bool, help='super resolution real time to show')
     parser.add_argument('--delay_time', default=1, type=int, help='super resolution delay time to show')
-    parser.add_argument('--model_name', default='epoch_8_100.pt', type=str, help='super resolution model name')
+    parser.add_argument('--model', default='epochs/epoch_8_100.pt', type=str, help='super resolution model name')
     opt = parser.parse_args()
 
     UPSCALE_FACTOR = opt.upscale_factor
     IS_REAL_TIME = opt.is_real_time
     DELAY_TIME = opt.delay_time
-    MODEL_NAME = opt.model_name
+    MODEL_NAME = opt.model
 
     path = 'data/val/SRF_' + str(UPSCALE_FACTOR) + '/data/videos/'
     
@@ -38,20 +38,13 @@ if __name__ == "__main__":
     model = Net(upscale_factor=UPSCALE_FACTOR)
     if torch.cuda.is_available():
         model = model.cuda()
-    model.load_state_dict(torch.load('epochs/' + MODEL_NAME))
+    model.load_state_dict(torch.load(MODEL_NAME))
 
     out_path = 'results/SRF_' + str(UPSCALE_FACTOR) + '/'
     if not os.path.exists(out_path):
         os.makedirs(out_path)
     videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, (720, 720))
     for file_name in tqdm(file_names, desc='convert LR videos to HR videos'):
-        # videoCapture = cv2.VideoCapture(path + video_name)
-        # if not IS_REAL_TIME:
-            # fps = videoCapture.get(cv2.CAP_PROP_FPS)
-            # size = (int(videoCapture.get(cv2.CAP_PROP_FRAME_WIDTH) * UPSCALE_FACTOR),
-            #         int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * UPSCALE_FACTOR)
-            # output_name = out_path + video_name.split('.')[0] + '.avi'
-            # videoWriter = cv2.VideoWriter(output_name, cv2.VideoWriter_fourcc(*'MPEG'), fps, size)
         img = Image.open(file_name).convert('YCbCr')
         y, cb, cr = img.split()
         image = Variable(ToTensor()(y)).view(1, -1, y.size[1], y.size[0])

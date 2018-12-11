@@ -20,16 +20,15 @@ from frameloss import FrameLoss
 
 
 def processor(sample):
-    image, next_image, target, next_target, training = sample
-    image = Variable(image)
-    next_image = Variable(next_image)
-    target = Variable(target)
-    next_target = Variable(next_target)
-    if torch.cuda.is_available():
-        image = image.cuda()
-        next_image = next_image.cuda()
-        target = target.cuda()
-        next_target = next_target.cuda()
+    def tensorFromSample(key):
+        tensor = Variable(sample[0][key])
+        if torch.cuda.is_available():
+            tensor = tensor.cuda()
+        return tensor
+    image = tensorFromSample("image")
+    next_image = tensorFromSample("next_image")
+    target = tensorFromSample("target")
+    next_target = tensorFromSample("next_target")
 
     a_curr = model(image)
     a_next = model(next_image)
@@ -49,7 +48,7 @@ def reset_meters():
 
 
 def on_forward(state):
-    meter_psnr.add(state['output'].data, state['sample'][3])
+    meter_psnr.add(state['output'].data, state['sample'][0]['target'])
     meter_loss.add(state['loss'].data.item())
 
 
@@ -79,7 +78,7 @@ def on_end_epoch(state):
 
 
 if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"]="2,3"
+    os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 
     parser = argparse.ArgumentParser(description='Train Super Resolution')
