@@ -39,6 +39,29 @@ def target_transform(crop_size):
 class DatasetFromFolder(Dataset):
     def __init__(self, dataset_dir, upscale_factor, input_transform=None, target_transform=None):
         super(DatasetFromFolder, self).__init__()
+        self.image_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/data/videos' 
+        self.target_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/target/videos' 
+        self.image_filenames = [join(self.image_dir, x) for x in listdir(self.image_dir) if is_image_file(x)]
+        self.target_filenames = [join(self.target_dir, x) for x in listdir(self.target_dir) if is_image_file(x)]
+        self.input_transform = input_transform
+        self.target_transform = target_transform
+
+    def __getitem__(self, index):
+        image, _, _ = Image.open(self.image_filenames[index]).convert('YCbCr').split()
+        target, _, _ = Image.open(self.target_filenames[index]).convert('YCbCr').split()
+        if self.input_transform:
+            image = self.input_transform(image)
+        if self.target_transform:
+            target = self.target_transform(target)
+
+        return image, target
+
+    def __len__(self):
+        return len(self.image_filenames)
+
+class DatasetFromFolderVideos(Dataset):
+    def __init__(self, dataset_dir, upscale_factor, input_transform=None, target_transform=None):
+        super(DatasetFromFolderVideos, self).__init__()
         self.image_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/data/videos'
         self.target_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/target/videos'
         self.image_filenames = [join(self.image_dir, x) for x in listdir(self.image_dir) if is_image_file(x)]
