@@ -35,7 +35,6 @@ if __name__ == "__main__":
     
     file_names = [join(path, x) for x in listdir(path) if is_image_file(x)]
     file_names.sort()
-    print(file_names)
     model = Net(upscale_factor=UPSCALE_FACTOR)
     if torch.cuda.is_available():
         model = model.cuda()
@@ -53,7 +52,6 @@ if __name__ == "__main__":
             #         int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * UPSCALE_FACTOR)
             # output_name = out_path + video_name.split('.')[0] + '.avi'
             # videoWriter = cv2.VideoWriter(output_name, cv2.VideoWriter_fourcc(*'MPEG'), fps, size)
-        videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, (720, 720))
         img = Image.open(file_name).convert('YCbCr')
         y, cb, cr = img.split()
         image = Variable(ToTensor()(y)).view(1, -1, y.size[1], y.size[0])
