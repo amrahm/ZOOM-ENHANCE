@@ -33,17 +33,27 @@ def target_transform(crop_size):
 
 
 class DatasetFromFolder(Dataset):
-    def __init__(self, dataset_dir, upscale_factor, videos=True, input_transform=None, target_transform=None):
+    def __init__(self, dataset_dir, upscale_factor, input_transform=None, target_transform=None):
         super(DatasetFromFolder, self).__init__()
-        vids = "/videos" if videos else "/images"
-        self.image_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/data' + vids 
-        self.target_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/target'+ vids 
+        self.image_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/data/videos'
+        self.target_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/target/videos'
         self.image_filenames = [join(self.image_dir, x) for x in listdir(self.image_dir) if is_image_file(x)]
+        self.image_filenames.sort()
         self.target_filenames = [join(self.target_dir, x) for x in listdir(self.target_dir) if is_image_file(x)]
+        self.target_filenames.sort()
         self.input_transform = input_transform
         self.target_transform = target_transform
 
     def __getitem__(self, index):
+        if index >= len(self.image_filenames) - 2:
+            index = 0
+
+        
+        frame_no = self.image_filenames[index].split(".")[-2]
+        next_frame_no = self.image_filenames[index + 1].split(".")[-2]
+        if next_frame_no != frame_no + 1:
+            frame_no = next_frame_no
+
         image, _, _ = Image.open(self.image_filenames[index]).convert('YCbCr').split()
         target, _, _ = Image.open(self.target_filenames[index]).convert('YCbCr').split()
         if self.input_transform:
@@ -88,7 +98,7 @@ def generate_dataset(data_type, upscale_factor):
                     image = lr_transform(image)
                     target = hr_transform(target)
 
-                    image_name = video_name.replace(video_name.split(".")[-1], "") + str(frame_no) + ".png"
+                    image_name = video_name.replace(video_name.split(".")[-1], "") + str(frame_no).zfill(2) + ".png"
                     image.save(image_path + '/videos/' + image_name)
                     target.save(target_path + '/videos/' + image_name)
                     frame_no += 1
@@ -109,3 +119,11 @@ if __name__ == "__main__":
     SET = opt.set
 
     generate_dataset(data_type=SET, upscale_factor=UPSCALE_FACTOR)
+
+
+
+
+
+# a = ["W.01.png", "W.02.png", "W.20.png", "W.10.png", "W.11.png"]
+# a.sort()
+# print(a)
