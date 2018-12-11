@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument('--upscale_factor', default=3, type=int, help='super resolution upscale factor')
     parser.add_argument('--is_real_time', default=False, type=bool, help='super resolution real time to show')
     parser.add_argument('--delay_time', default=1, type=int, help='super resolution delay time to show')
-    parser.add_argument('--model_name', default='epoch_3_100.pt', type=str, help='super resolution model name')
+    parser.add_argument('--model_name', default='epoch_8_100.pt', type=str, help='super resolution model name')
     opt = parser.parse_args()
 
     UPSCALE_FACTOR = opt.upscale_factor
