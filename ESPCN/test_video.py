@@ -49,7 +49,7 @@ if __name__ == "__main__":
             #         int(videoCapture.get(cv2.CAP_PROP_FRAME_HEIGHT)) * UPSCALE_FACTOR)
             # output_name = out_path + video_name.split('.')[0] + '.avi'
             # videoWriter = cv2.VideoWriter(output_name, cv2.VideoWriter_fourcc(*'MPEG'), fps, size)
-        videoWriter = cv2.VideoWriter(out_path + "out.mpeg", cv2.VideoWriter_fourcc(*'MPEG'), 24, 720)
+        videoWriter = cv2.VideoWriter(out_path + "out.mpeg", cv2.VideoWriter_fourcc(*'MPEG'), 24, (720, 720))
         # read frame
         # success, frame = videoCapture.read()
         # while success:
