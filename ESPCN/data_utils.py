@@ -83,7 +83,7 @@ def generate_dataset(data_type, upscale_factor):
         ffmpeg_extract_subclip(video_rel_path, 0, 5, targetname=target_rel_path)
         video = pims.open(os.path.abspath(target_rel_path))
         #image_path
-        ffmpeg_resize(video, image_path + '/videos/' + video_name,(int(video[0].shape[0]), int(video[0].shape[1])))
+        ffmpeg_resize(target_rel_path, image_path + '/videos/' + video_name, video[0].shape)
 
 def makePathIfNotExists(target_path):
     if not os.path.exists(target_path):
