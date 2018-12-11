@@ -9,10 +9,7 @@ from torch.utils.data.dataset import Dataset
 from torchvision.transforms import Compose, CenterCrop, Resize
 from tqdm import tqdm
 import pymp
-
-
-def is_image_file(filename):
-    return any(filename.endswith(extension) for extension in ['.png', '.jpg', '.jpeg', '.JPG', '.JPEG', '.PNG'])
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip, ffmpeg_resize
 
 
 def is_video_file(filename):
@@ -62,52 +59,29 @@ class DatasetFromFolder(Dataset):
 
 
 def generate_dataset(data_type, upscale_factor):
-    makePathIfNotExists('data/dataset/images/' + data_type)
     makePathIfNotExists('data/dataset/videos/' + data_type)
-    images_name = [x for x in listdir('data/dataset/images/' + data_type) if is_image_file(x)]
     videos_name = [x for x in listdir('data/dataset/videos/' + data_type) if is_video_file(x)]
-    crop_size = calculate_valid_crop_size(1080, upscale_factor)
-    lr_transform = input_transform(crop_size, upscale_factor)
-    hr_transform = target_transform(crop_size)
 
     root = 'data/' + data_type
     makePathIfNotExists(root)
     path = root + '/SRF_' + str(upscale_factor)
     makePathIfNotExists(path)
     image_path = path + '/data'
-    makePathIfNotExists(image_path + '/images/')
     makePathIfNotExists(image_path + '/videos/')
     target_path = path + '/target'
-    makePathIfNotExists(target_path + '/images/')
     makePathIfNotExists(target_path + '/videos/')
-
-    for image_name in tqdm(images_name, desc='generate ' + data_type + ' image dataset with upscale factor = '
-            + str(upscale_factor) + ' from dataset'):
-        image = Image.open('data/dataset/images/' + data_type + '/' + image_name)
-        target = image.copy()
-        image = lr_transform(image)
-        target = hr_transform(target)
-
-        image.save(image_path + '/images/' + image_name)
-        target.save(target_path + '/images/' + image_name)
 
     with pymp.Parallel(24) as p:
         for i in tqdm(p.range(len(videos_name)), desc='generate ' + data_type + ' video dataset with upscale factor = '
                 + str(upscale_factor) + ' from dataset'):
             video_name = videos_name[i]
-            video = pims.open('data/dataset/videos/' + data_type + '/' + video_name)
+            video_full_path = 'data/dataset/videos/' + data_type + '/' + video_name
             try:
-                frame_no = 1
-                for image in video[60:240]: #Save frames 60 to 240 only
-                    image = Image.fromarray(image) #convert pims frame to PIL image
-                    target = image.copy()
-                    image = lr_transform(image)
-                    target = hr_transform(target)
-
-                    image_name = video_name.replace(video_name.split(".")[-1], "") + str(frame_no) + ".png"
-                    image.save(image_path + '/videos/' + image_name)
-                    target.save(target_path + '/videos/' + image_name)
-                    frame_no += 1
+                target_full_path = target_path + '/videos/' + video_name
+                ffmpeg_extract_subclip(video_full_path, 1, 3, targetname=target_full_path)
+                video = pims.open(target_full_path)
+                #image_path
+                ffmpeg_resize(video,image_path + '/videos/' + video_name,video[0].shape)
             except (pims.api.UnknownFormatError, IndexError) as e:
                 print(e)
 
