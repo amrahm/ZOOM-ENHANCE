@@ -63,9 +63,9 @@ class DatasetFromFolderVideos(Dataset):
     def __init__(self, dataset_dir, upscale_factor, input_transform=None, target_transform=None):
         super(DatasetFromFolderVideos, self).__init__()
         self.image_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/data/videos'
-        self.target_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/target/videos'
         self.image_filenames = [join(self.image_dir, x) for x in listdir(self.image_dir) if is_image_file(x)]
         self.image_filenames.sort()
+        self.target_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/target/videos'
         self.target_filenames = [join(self.target_dir, x) for x in listdir(self.target_dir) if is_image_file(x)]
         self.target_filenames.sort()
         self.input_transform = input_transform

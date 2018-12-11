@@ -1,6 +1,7 @@
 import argparse
 import os
 from os import listdir
+from os.path import join
 
 import cv2
 import numpy as np
@@ -12,6 +13,10 @@ from tqdm import tqdm
 
 from data_utils import is_video_file
 from model import Net
+
+
+def is_image_file(filename):
+    return any(filename.endswith(extension) for extension in ['.png', '.jpg', '.jpeg', '.JPG', '.JPEG', '.PNG'])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test Super Resolution')
@@ -28,8 +33,12 @@ if __name__ == "__main__":
 
     path = 'data/val/SRF_' + str(UPSCALE_FACTOR) + '/data/videos/'
     # videos_name = [x for x in listdir(path) if is_video_file(x)]
-    file_names = [x for x in listdir(path)]
-    file_names.sort()
+    
+    dataset_dir = 'data/val'
+    target_dir = dataset_dir + '/SRF_' + str(UPSCALE_FACTOR) + '/target/videos'
+    target_filenames = [join(target_dir, x) for x in listdir(target_dir) if is_image_file(x)]
+    target_filenames.sort()
+    file_names = target_filenames
     model = Net(upscale_factor=UPSCALE_FACTOR)
     if torch.cuda.is_available():
         model = model.cuda()
