@@ -78,12 +78,12 @@ def generate_dataset(data_type, upscale_factor):
             + str(upscale_factor) + ' from dataset'):
         import pdb; pdb.set_trace()
         video_name = videos_name[i]
-        video_rel_path = 'data/dataset/videos/' + data_type + '/' + video_name
-        target_rel_path = target_path + '/videos/' + video_name
+        video_rel_path = os.path.relpath('data/dataset/videos/' + data_type + '/' + video_name)
+        target_rel_path = os.path.relpath(target_path + '/videos/' + video_name)
         ffmpeg_extract_subclip(video_rel_path, 1, 3, targetname=target_rel_path)
-        video = pims.open(os.path.abspath(target_rel_path))
+        video = pims.open(target_rel_path)
         #image_path
-        ffmpeg_resize(video, image_path + '/videos/' + video_name,video[0].shape)
+        ffmpeg_resize(video, os.path.relpath(image_path + '/videos/' + video_name,video[0].shape))
 
 def makePathIfNotExists(target_path):
     if not os.path.exists(target_path):
