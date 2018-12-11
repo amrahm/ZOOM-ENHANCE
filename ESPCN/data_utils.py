@@ -75,12 +75,12 @@ def generate_dataset(data_type, upscale_factor):
         for i in tqdm(p.range(len(videos_name)), desc='generate ' + data_type + ' video dataset with upscale factor = '
                 + str(upscale_factor) + ' from dataset'):
             video_name = videos_name[i]
-            video_rel_path = os.path.relpath('data/dataset/videos/' + data_type + '/' + video_name)
-            target_rel_path = os.path.relpath(target_path + '/videos/' + video_name)
-            ffmpeg_extract_subclip(video_rel_path, 1, 3, targetname=target_rel_path)
-            video = pims.open(target_rel_path)
+            video_full_path = 'data/dataset/videos/' + data_type + '/' + video_name
+            target_full_path = target_path + '/videos/' + video_name
+            ffmpeg_extract_subclip(video_full_path, 1, 3, targetname=target_full_path)
+            video = pims.open(target_full_path)
             #image_path
-            ffmpeg_resize(video, os.path.relpath(image_path + '/videos/' + video_name,video[0].shape))
+            ffmpeg_resize(video,image_path + '/videos/' + video_name,video[0].shape)
 
 def makePathIfNotExists(target_path):
     if not os.path.exists(target_path):
