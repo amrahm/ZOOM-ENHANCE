@@ -78,7 +78,7 @@ def on_end_epoch(state):
     print('[Epoch %d] Val Loss: %.4f (PSNR: %.2f db)' % (
         state['epoch'], meter_loss.value()[0], meter_psnr.value()))
 
-    torch.save(model.state_dict(), 'epochs/epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
+    torch.save(model.state_dict(), 'epochs_frameloss/epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
 
 
 if __name__ == "__main__":
