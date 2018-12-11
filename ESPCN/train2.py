@@ -48,7 +48,7 @@ def reset_meters():
 
 
 def on_forward(state):
-    meter_psnr.add(state['output'].data, state['sample'][1])
+    meter_psnr.add(state['output'].data, state['sample'][3])
     meter_loss.add(state['loss'].data.item())
 
 
