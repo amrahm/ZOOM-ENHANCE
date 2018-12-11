@@ -51,6 +51,7 @@ if __name__ == "__main__":
         os.makedirs(out_path)
     # for video_name in tqdm(videos_name, desc='convert LR videos to HR videos'):
     test_img = Image.open(file_names[0]).convert('YCbCr')
+    print(test_img.size)
     videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, test_img.size)
     for file_name in tqdm(file_names, desc='convert LR videos to HR videos'):
         # videoCapture = cv2.VideoCapture(path + video_name)
