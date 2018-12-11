@@ -42,7 +42,7 @@ def processor(sample):
 
 
 def on_sample(state):
-    state['sample'].append(state['train'])
+    state['sample'] = state['train']
 
 
 def reset_meters():
