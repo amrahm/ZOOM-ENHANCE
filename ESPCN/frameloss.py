@@ -11,8 +11,8 @@ class FrameLoss(torch.nn.Module):
     def __init__(self):
         super(FrameLoss, self).__init__()
 
-    def forward(self, a_curr, a_prev, t_curr, t_prev):
-        c_diff = a_curr - a_prev
-        t_diff = t_curr - t_prev
+    def forward(self, a_curr, a_next, t_curr, t_next):
+        c_diff = a_curr - a_next
+        t_diff = t_curr - t_next
         loss = torch.nn.L1Loss(c_diff, t_diff)
         return loss

@@ -52,16 +52,25 @@ class DatasetFromFolder(Dataset):
         frame_no = self.image_filenames[index].split(".")[-2]
         next_frame_no = self.image_filenames[index + 1].split(".")[-2]
         if next_frame_no != frame_no + 1:
-            frame_no = next_frame_no
+            index = index + 1
 
         image, _, _ = Image.open(self.image_filenames[index]).convert('YCbCr').split()
+        next_image, _, _ = Image.open(self.image_filenames[index + 1]).convert('YCbCr').split()
         target, _, _ = Image.open(self.target_filenames[index]).convert('YCbCr').split()
-        if self.input_transform:
+        next_target, _, _ = Image.open(self.target_filenames[index+1]).convert('YCbCr').split()
+        if self.input_transform is not None:
             image = self.input_transform(image)
-        if self.target_transform:
+            next_image = self.input_transform(next_image)
+        if self.target_transform is not None:
             target = self.target_transform(target)
+            next_target = self.target_transform(next_target)
 
-        return image, target
+        return {
+            'image': image,
+            'next_image': next_image,
+            'target': target,
+            'next_target': next_target
+        }
 
     def __len__(self):
         return len(self.image_filenames)

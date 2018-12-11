@@ -15,20 +15,29 @@ from tqdm import tqdm
 from data_utils import DatasetFromFolder
 from model import Net
 from psnrmeter import PSNRMeter
+from frameloss import FrameLoss
 
 
 def processor(sample):
-    data, target, training = sample
-    data = Variable(data)
+    image = sample["image"]
+    next_image = sample["next_image"]
+    target = sample["target"]
+    next_target = sample["next_target"]
+    image = Variable(image)
+    next_image = Variable(next_image)
     target = Variable(target)
+    next_target = Variable(next_target)
     if torch.cuda.is_available():
-        data = data.cuda()
+        image = image.cuda()
+        next_image = next_image.cuda()
         target = target.cuda()
+        next_target = next_target.cuda()
 
-    output = model(data)
-    loss = criterion(output, target)
+    a_curr = model(image)
+    a_next = model(a_next)
+    loss = criterion(a_curr, a_next, target, next_image)
 
-    return loss, output
+    return loss, a_curr
 
 
 def on_sample(state):
@@ -88,7 +97,7 @@ if __name__ == "__main__":
     val_loader = DataLoader(dataset=val_set, num_workers=12, batch_size=64, shuffle=False)
 
     model = Net(upscale_factor=UPSCALE_FACTOR)
-    criterion = nn.MSELoss()
+    criterion = FrameLoss()
     if torch.cuda.is_available():
         model = model.cuda()
         criterion = criterion.cuda()
