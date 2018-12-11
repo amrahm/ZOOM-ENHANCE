@@ -20,10 +20,7 @@ from frameloss import FrameLoss
 
 
 def processor(sample):
-    image = sample["image"]
-    next_image = sample["next_image"]
-    target = sample["target"]
-    next_target = sample["next_target"]
+    image, next_image, target, next_target, training = sample
     image = Variable(image)
     next_image = Variable(next_image)
     target = Variable(target)
@@ -35,8 +32,9 @@ def processor(sample):
         next_target = next_target.cuda()
 
     a_curr = model(image)
-    a_next = model(a_next)
-    loss = criterion(a_curr, a_next, target, next_image)
+    a_next = model(next_image)
+    loss = criterion(a_curr, a_next, target, next_target)
+    loss += criterion2(a_curr, target)
 
     return loss, a_curr
 
@@ -51,7 +49,7 @@ def reset_meters():
 
 
 def on_forward(state):
-    meter_psnr.add(state['output'].data, state['sample'][1])
+    meter_psnr.add(state['output'].data, state['sample'][3])
     meter_loss.add(state['loss'].data.item())
 
 
@@ -77,7 +75,7 @@ def on_end_epoch(state):
     print('[Epoch %d] Val Loss: %.4f (PSNR: %.2f db)' % (
         state['epoch'], meter_loss.value()[0], meter_psnr.value()))
 
-    torch.save(model.state_dict(), 'epochs/epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
+    torch.save(model.state_dict(), 'epochs_frameloss/epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
 
 
 if __name__ == "__main__":
@@ -101,9 +99,11 @@ if __name__ == "__main__":
 
     model = Net(upscale_factor=UPSCALE_FACTOR)
     criterion = FrameLoss()
+    criterion2 = nn.MSELoss()
     if torch.cuda.is_available():
         model = model.cuda()
         criterion = criterion.cuda()
+        criterion2 = criterion2.cuda()
 
     print('# parameters:', sum(param.numel() for param in model.parameters()))
 
