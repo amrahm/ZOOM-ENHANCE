@@ -32,27 +32,19 @@ if __name__ == "__main__":
     MODEL_NAME = opt.model_name
 
     path = 'data/val/SRF_' + str(UPSCALE_FACTOR) + '/data/videos/'
-    # videos_name = [x for x in listdir(path) if is_video_file(x)]
     
-    dataset_dir = 'data/val'
-    target_dir = dataset_dir + '/SRF_' + str(UPSCALE_FACTOR) + '/target/videos'
-    target_filenames = [join(target_dir, x) for x in listdir(target_dir) if is_image_file(x)]
-    target_filenames.sort()
-    file_names = target_filenames
+    file_names = [join(path, x) for x in listdir(path) if is_image_file(x)]
+    file_names.sort()
+    print(file_names)
     model = Net(upscale_factor=UPSCALE_FACTOR)
     if torch.cuda.is_available():
         model = model.cuda()
-    # for cpu
-    # model.load_state_dict(torch.load('epochs/' + MODEL_NAME, map_location=lambda storage, loc: storage))
     model.load_state_dict(torch.load('epochs/' + MODEL_NAME))
 
     out_path = 'results/SRF_' + str(UPSCALE_FACTOR) + '/'
     if not os.path.exists(out_path):
         os.makedirs(out_path)
-    # for video_name in tqdm(videos_name, desc='convert LR videos to HR videos'):
-    test_img = Image.open(file_names[0]).convert('YCbCr')
-    print(test_img.size)
-    videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, test_img.size)
+    videoWriter = cv2.VideoWriter(out_path + "out.avi", cv2.VideoWriter_fourcc(*'MPEG'), 24, (720, 720))
     for file_name in tqdm(file_names, desc='convert LR videos to HR videos'):
         # videoCapture = cv2.VideoCapture(path + video_name)
         # if not IS_REAL_TIME:
