@@ -3,20 +3,14 @@ import os
 from os import listdir
 from os.path import join
 
-from PIL import Image
 import pims
+from PIL import Image
 from torch.utils.data.dataset import Dataset
-from torchvision.transforms import Compose, CenterCrop, Resize
+from torchvision.transforms import CenterCrop, Compose, Resize
 from tqdm import tqdm
+
 import pymp
-
-
-
-def is_image_file(filename):
-    return any(filename.endswith(extension) for extension in ['.png', '.jpg', '.jpeg', '.JPG', '.JPEG', '.PNG'])
-
-def is_video_file(filename):
-    return any(filename.endswith(extension) for extension in ['.mp4', '.avi', '.mpg', '.mkv', '.wmv', '.flv'])
+from util import *
 
 
 def calculate_valid_crop_size(crop_size, upscale_factor):
@@ -105,7 +99,7 @@ class DatasetFromFolderVideos(Dataset):
 
 class DatasetFromFolderAdjacent(Dataset):
     def __init__(self, dataset_dir, upscale_factor, input_transform=None, target_transform=None):
-        super(DatasetFromFolderVideos, self).__init__()
+        super(DatasetFromFolderAdjacent, self).__init__()
         self.image_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/data/videos'
         self.image_filenames = [join(self.image_dir, x) for x in listdir(self.image_dir) if is_image_file(x)]
         self.image_filenames.sort()
@@ -193,10 +187,6 @@ def generate_dataset(data_type, upscale_factor):
                     frame_no += 1
             except (pims.api.UnknownFormatError, IndexError) as e:
                 print(e)
-
-def makePathIfNotExists(target_path):
-    if not os.path.exists(target_path):
-        os.makedirs(target_path)
 
 
 if __name__ == "__main__":

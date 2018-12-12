@@ -14,9 +14,8 @@ from tqdm import tqdm
 from data_utils import is_video_file
 from model import Net
 
+from util import *
 
-def is_image_file(filename):
-    return any(filename.endswith(extension) for extension in ['.png', '.jpg', '.jpeg', '.JPG', '.JPEG', '.PNG'])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test Super Resolution')

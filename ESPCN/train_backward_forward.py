@@ -17,6 +17,7 @@ from data_utils import DatasetFromFolderAdjacent
 from model import Net
 from psnrmeter import PSNRMeter
 from adj_frameloss import AdjacentFrameLoss
+from util import *
 
 
 def processor(sample):
@@ -77,12 +78,14 @@ def on_end_epoch(state):
     print('[Epoch %d] Val Loss: %.4f (PSNR: %.2f db)' % (
         state['epoch'], meter_loss.value()[0], meter_psnr.value()))
 
-    torch.save(model.state_dict(), 'epochs_adj_frameloss/epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
+    torch.save(model.state_dict(), EPOCH_DIR + 'epoch_%d_%d.pt' % (UPSCALE_FACTOR, state['epoch']))
 
 
 if __name__ == "__main__":
-    os.environ["CUDA_VISIBLE_DEVICES"]="2"
+    EPOCH_DIR = "epochs_adj_frameloss/"
+    makePathIfNotExists(EPOCH_DIR)
 
+    os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
     parser = argparse.ArgumentParser(description='Train Super Resolution')
     parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
