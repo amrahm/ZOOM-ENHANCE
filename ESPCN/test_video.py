@@ -10,10 +10,11 @@ import torch
 from PIL import Image
 from torch.autograd import Variable
 from torchvision.transforms import ToTensor
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
 from data_utils import is_video_file
 from model import Net
+from model2 import TwoNet
 
 from util import *
 
@@ -22,16 +23,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Test Super Resolution')
     parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
     parser.add_argument('--model', default='epochs/epoch_8_100.pt', type=str, help='super resolution model name')
+    parser.add_argument('--stacked', default=False, type=bool, help='super resolution model name')
     opt = parser.parse_args()
 
     UPSCALE_FACTOR = opt.upscale_factor
     MODEL_NAME = opt.model
+    STACKED = opt.stacked
 
     path = 'data/val/SRF_' + str(UPSCALE_FACTOR) + '/data/videos/'
 
     file_names = [join(path, x) for x in listdir(path) if is_image_file(x)]
     file_names.sort()
-    model = Net(upscale_factor=UPSCALE_FACTOR)
+
+    if STACKED:
+        model = TwoNet(upscale_factor=UPSCALE_FACTOR)
+    else:
+        model = Net(upscale_factor=UPSCALE_FACTOR)
+
     if torch.cuda.is_available():
         model = model.cuda()
     model.load_state_dict(torch.load(MODEL_NAME))
@@ -50,14 +58,25 @@ if __name__ == "__main__":
                 'veryslow'  #the slower the better compression, in princple, try 
             #other options see https://trac.ffmpeg.org/wiki/Encode/H.264
         })
-    for file_name in tqdm(file_names, desc='convert LR videos to HR videos'):
+    for i in tqdm(trange(len(file_names) - 2), desc='convert LR videos to HR videos'):
+        file_name = file_names[i]
         img = Image.open(file_name).convert('YCbCr')
         y, cb, cr = img.split()
         image = Variable(ToTensor()(y)).view(1, -1, y.size[1], y.size[0])
         if torch.cuda.is_available():
             image = image.cuda()
 
-        out = model(image)
+        if STACKED:
+            file_name2 = file_names[i + 1]
+            img2 = Image.open(file_name2).convert('YCbCr')
+            y2, cb2, cr2 = img2.split()
+            image2 = Variable(ToTensor()(y2)).view(1, -1, y2.size[1], y2.size[0])
+            if torch.cuda.is_available():
+                image2 = image2.cuda()
+            stacked = torch.cat((image, image2), 1)
+            out = model(stacked)
+        else:
+            out = model(image)
         out = out.cpu()
         out_img_y = out.data[0].numpy()
         out_img_y *= 255.0
