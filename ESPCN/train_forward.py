@@ -34,7 +34,6 @@ def processor(sample):
     a_curr = model(image)
     a_next = model(next_image)
     loss = criterion(a_curr, a_next, target, next_target)
-    loss += criterion2(a_curr, target)
 
     return loss, a_curr
 
@@ -101,11 +100,9 @@ if __name__ == "__main__":
 
     model = Net(upscale_factor=UPSCALE_FACTOR)
     criterion = FrameLoss()
-    criterion2 = nn.MSELoss()
     if torch.cuda.is_available():
         model = model.cuda()
         criterion = criterion.cuda()
-        criterion2 = criterion2.cuda()
 
     print('# parameters:', sum(param.numel() for param in model.parameters()))
 

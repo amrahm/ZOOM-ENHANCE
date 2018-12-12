@@ -19,7 +19,7 @@ def calculate_valid_crop_size(crop_size, upscale_factor):
 
 def input_transform(crop_size, upscale_factor):
     return Compose([
-        CenterCrop(crop_size),
+        # CenterCrop(crop_size),
         Resize(crop_size // upscale_factor, interpolation=Image.BICUBIC)
     ])
 
@@ -174,12 +174,12 @@ def generate_dataset(data_type, upscale_factor):
                     image = Image.fromarray(image) #convert pims frame to PIL image
                     target = image.copy()
                     
-                    crop_size = calculate_valid_crop_size(720, upscale_factor)
+                    crop_size = calculate_valid_crop_size(min(image.size), upscale_factor)
                     lr_transform = input_transform(crop_size, upscale_factor)
-                    hr_transform = target_transform(crop_size)
+                    # hr_transform = target_transform(crop_size)
 
                     image = lr_transform(image)
-                    target = hr_transform(target)
+                    # target = hr_transform(target)
 
                     image_name = video_name.replace(video_name.split(".")[-1], "") + str(frame_no).zfill(2) + ".png"
                     image.save(image_path + '/videos/' + image_name)

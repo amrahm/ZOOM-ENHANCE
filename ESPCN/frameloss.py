@@ -10,10 +10,13 @@ class FrameLoss(torch.nn.Module):
 
     def __init__(self):
         super(FrameLoss, self).__init__()
+        self.l1 = torch.nn.L1Loss()
+        self.l2 = torch.nn.MSELoss()
+        if torch.cuda.is_available():
+            self.l1 = self.l1.cuda()
+            self.l2 = self.l2.cuda()
 
     def forward(self, a_curr, a_next, t_curr, t_next):
-        c_diff = a_curr - a_next
-        t_diff = t_curr - t_next
-        # loss = torch.nn.MSELoss(c_diff, t_diff)
-        loss = torch.mean(F.pairwise_distance(c_diff, t_diff))
-        return loss
+        a_next_diff = a_curr - a_next
+        t_next_diff = t_curr - t_next
+        return self.l1(a_next_diff, t_next_diff) + self.l2(a_curr, t_curr)
