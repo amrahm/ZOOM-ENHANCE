@@ -4,6 +4,7 @@ from os import listdir
 from os.path import join
 
 import cv2
+import skvideo.io
 import numpy as np
 import torch
 from PIL import Image
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     MODEL_NAME = opt.model
 
     path = 'data/val/SRF_' + str(UPSCALE_FACTOR) + '/data/videos/'
-    
+
     file_names = [join(path, x) for x in listdir(path) if is_image_file(x)]
     file_names.sort()
     model = Net(upscale_factor=UPSCALE_FACTOR)
@@ -35,10 +36,20 @@ if __name__ == "__main__":
         model = model.cuda()
     model.load_state_dict(torch.load(MODEL_NAME))
 
-    out_path = 'results/SRF_' + str(UPSCALE_FACTOR) + '/' + MODEL_NAME + ".mp4"
-    if not os.path.exists(out_path):
-        os.makedirs(out_path)
-    videoWriter = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'FFV1'), 24, (720, 720))
+
+
+    out_path = 'results/SRF_' + str(UPSCALE_FACTOR) + '/' + MODEL_NAME + ".avi"
+    if not os.path.exists(os.path.dirname(out_path)):
+        os.makedirs(os.path.dirname(out_path))
+    # videoWriter = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*'LAGS'), 24, (720, 720))
+    videoWriter = skvideo.io.FFmpegWriter(out_path,
+        outputdict={
+            '-vcodec': 'libx264',  #use the h.264 codec
+            '-crf': '0',  #set the constant rate factor to 0, which is lossless
+            '-preset':
+                'veryslow'  #the slower the better compression, in princple, try 
+            #other options see https://trac.ffmpeg.org/wiki/Encode/H.264
+        })
     for file_name in tqdm(file_names, desc='convert LR videos to HR videos'):
         img = Image.open(file_name).convert('YCbCr')
         y, cb, cr = img.split()
@@ -57,5 +68,7 @@ if __name__ == "__main__":
         out_img = Image.merge('YCbCr', [out_img_y, out_img_cb, out_img_cr]).convert('RGB')
         out_img = cv2.cvtColor(np.asarray(out_img), cv2.COLOR_RGB2BGR)
 
-        videoWriter.write(out_img)
-    videoWriter.release()
+        # videoWriter.write(out_img)
+        videoWriter.writeFrame(out_img[:,:,::-1])  #write the frame as RGB not BGR
+    # videoWriter.release()
+    videoWriter.close()

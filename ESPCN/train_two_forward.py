@@ -13,9 +13,10 @@ from torchnet.engine import Engine
 from torchnet.logger import VisdomPlotLogger
 from tqdm import tqdm
 
-from data_utils import DatasetFromFolder
+from data_utils import DatasetFromFolderNextTwo
 from model import Net
 from psnrmeter import PSNRMeter
+from adj_frameloss import AdjacentFrameLoss
 from util import *
 
 
@@ -26,12 +27,18 @@ def processor(sample):
             tensor = tensor.cuda()
         return tensor
     image = tensorFromSample("image")
+    next_image = tensorFromSample("next_image")
+    next_next_image = tensorFromSample("next_next_image")
     target = tensorFromSample("target")
+    next_target = tensorFromSample("next_target")
+    next_next_target = tensorFromSample("next_next_target")
 
-    output = model(image)
-    loss = criterion(output, target)
+    a_curr = model(image)
+    a_next_next = model(next_next_image)
+    a_next = model(next_image)
+    loss = criterion(a_curr, a_next, a_next_next, target, next_target, next_next_target)
 
-    return loss, output
+    return loss, a_curr
 
 
 def on_sample(state):
@@ -74,10 +81,10 @@ def on_end_epoch(state):
 
 
 if __name__ == "__main__":
-    EPOCH_DIR = "epochs/"
+    EPOCH_DIR = "epochs_two_forward_frameloss/"
     makePathIfNotExists(EPOCH_DIR)
 
-    os.environ["CUDA_VISIBLE_DEVICES"]="0"
+    os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
     parser = argparse.ArgumentParser(description='Train Super Resolution')
     parser.add_argument('--upscale_factor', default=8, type=int, help='super resolution upscale factor')
@@ -87,15 +94,15 @@ if __name__ == "__main__":
     UPSCALE_FACTOR = opt.upscale_factor
     NUM_EPOCHS = opt.num_epochs
 
-    train_set = DatasetFromFolder('data/train', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
+    train_set = DatasetFromFolderNextTwo('data/train', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
                                   target_transform=transforms.ToTensor())
-    val_set = DatasetFromFolder('data/val', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
+    val_set = DatasetFromFolderNextTwo('data/val', upscale_factor=UPSCALE_FACTOR, input_transform=transforms.ToTensor(),
                                 target_transform=transforms.ToTensor())
     train_loader = DataLoader(dataset=train_set, num_workers=12, batch_size=64, shuffle=True)
     val_loader = DataLoader(dataset=val_set, num_workers=12, batch_size=64, shuffle=False)
 
     model = Net(upscale_factor=UPSCALE_FACTOR)
-    criterion = nn.MSELoss()
+    criterion = AdjacentFrameLoss()
     if torch.cuda.is_available():
         model = model.cuda()
         criterion = criterion.cuda()

@@ -48,7 +48,10 @@ class DatasetFromFolder(Dataset):
         if self.target_transform:
             target = self.target_transform(target)
 
-        return image, target
+        return [{
+            'image': image,
+            'target': target,
+        }]
 
     def __len__(self):
         return len(self.image_filenames)
@@ -144,6 +147,57 @@ class DatasetFromFolderAdjacent(Dataset):
             'target': target,
             'next_target': next_target,
             'prev_target': prev_target
+        }]
+
+    def __len__(self):
+        return len(self.image_filenames)
+
+
+class DatasetFromFolderNextTwo(Dataset):
+    def __init__(self, dataset_dir, upscale_factor, input_transform=None, target_transform=None):
+        super(DatasetFromFolderNextTwo, self).__init__()
+        self.image_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/data/videos'
+        self.image_filenames = [join(self.image_dir, x) for x in listdir(self.image_dir) if is_image_file(x)]
+        self.image_filenames.sort()
+        self.target_dir = dataset_dir + '/SRF_' + str(upscale_factor) + '/target/videos'
+        self.target_filenames = [join(self.target_dir, x) for x in listdir(self.target_dir) if is_image_file(x)]
+        self.target_filenames.sort()
+        self.input_transform = input_transform
+        self.target_transform = target_transform
+
+    def __getitem__(self, index):
+        if index >= len(self.image_filenames) - 3:
+            index = 0
+
+        
+        frame_no = self.image_filenames[index].split(".")[-2]
+        next_frame_no = self.image_filenames[index + 1].split(".")[-2]
+        next_next_frame_no = self.image_filenames[index - 1].split(".")[-2]
+        if int(next_next_frame_no) != int(frame_no) + 2:
+            index = index - 2
+
+        image, _, _ = Image.open(self.image_filenames[index]).convert('YCbCr').split()
+        next_image, _, _ = Image.open(self.image_filenames[index + 1]).convert('YCbCr').split()
+        next_next_image, _, _ = Image.open(self.image_filenames[index + 2]).convert('YCbCr').split()
+        target, _, _ = Image.open(self.target_filenames[index]).convert('YCbCr').split()
+        next_target, _, _ = Image.open(self.target_filenames[index + 1]).convert('YCbCr').split()
+        next_next_target, _, _ = Image.open(self.target_filenames[index + 2]).convert('YCbCr').split()
+        if self.input_transform is not None:
+            image = self.input_transform(image)
+            next_image = self.input_transform(next_image)
+            next_next_image = self.input_transform(next_next_image)
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+            next_target = self.target_transform(next_target)
+            next_next_target = self.target_transform(next_next_target)
+
+        return [{
+            'image': image,
+            'next_image': next_image,
+            'next_next_image': next_next_image,
+            'target': target,
+            'next_target': next_target,
+            'next_next_target': next_next_target
         }]
 
     def __len__(self):
